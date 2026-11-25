@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { trackEvent } from "../analytics/pendo";
 import { useAuth } from "../auth/AuthContext";
 
 /** Signs a user in with their email and password against the Tripwise API. */
@@ -22,7 +23,13 @@ export function SignInPage() {
     setSigningIn(true);
     setError(null);
     try {
-      await signIn(email.trim(), password);
+      const signedIn = await signIn(email.trim(), password);
+      // A fresh sign-in succeeded and the session is saved. The Pendo agent attaches the account itself.
+      trackEvent("sign_in_completed", {
+        userRole: signedIn.user.role,
+        accountPlan: signedIn.account.plan,
+        redirectTo: from,
+      });
       navigate(from, { replace: true });
     } catch {
       setError("That email and password don't match an account.");

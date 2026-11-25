@@ -5,7 +5,8 @@ import { clearSession, readSession, saveSession } from "./session";
 interface AuthState {
   user: User | null;
   account: Account | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  /** Signs in, saves the session and returns the signed-in user and their account. */
+  signIn: (email: string, password: string) => Promise<{ user: User; account: Account }>;
   signOut: () => Promise<void>;
   /** Replaces the signed-in user's details, after they edit their profile. */
   updateUser: (user: User) => void;
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const signedIn = await authApi.signIn(email, password);
     saveSession(signedIn);
     setSession(signedIn);
+    return { user: signedIn.user, account: signedIn.account };
   }, []);
 
   const signOut = useCallback(async () => {
